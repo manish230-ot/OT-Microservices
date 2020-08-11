@@ -1,0 +1,9 @@
+*.log
+**/log
+.git
+*.html
+*.txt
+*.rss
+*.css
+*.png
+*.gif
