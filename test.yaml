@@ -1,0 +1,132 @@
+#file test.yaml
+
+parameters:
+  name: ''
+  depends: ''
+  pool: ''
+  branch: ''
+
+stages:
+- stage: test
+  displayName: ${{ parameters.name }}_unittest
+  jobs:
+
+  - job: Unit_Test
+    displayName: Run unit tests
+    dependsOn: ${{ parameters.depends }}
+    pool:
+      vmImage: ${{ parameters.pool }}
+    steps:
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: 'git checkout ${{ parameters.branch }}'
+    - task: Maven@3
+      displayName: Run the unit test
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'test'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        javaHomeOption: 'JDKVersion'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
+
+  - job: checkStyleAnalysis
+    displayName: ${{ parameters.name }}_checkStyleAnalysis
+    dependsOn: ${{ parameters.depends }}
+    pool:
+      vmImage: ${{ parameters.pool }}
+    steps:
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: 'git checkout ${{ parameters.branch }}'
+    - task: Maven@3
+      displayName: Run Checkstyle analysis
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'checkstyle:checkstyle'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        javaHomeOption: 'JDKVersion'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
+        checkStyleRunAnalysis: true
+
+  - job: PMD
+    displayName: ${{ parameters.name }}_pmd
+    dependsOn: ${{ parameters.depends }}
+    pool:
+      vmImage: ${{ parameters.pool }}
+    steps:
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: 'git checkout ${{ parameters.branch }}'
+    - task: Maven@3
+      displayName: Run PMD scan
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'pmd:pmd'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        javaHomeOption: 'JDKVersion'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
+        pmdRunAnalysis: true
+
+  - job: Findbugs
+    displayName: ${{ parameters.name }}_findbugs
+    dependsOn: ${{ parameters.depends }}
+    pool:
+      vmImage: ${{ parameters.pool }}
+    steps:
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: 'git checkout ${{ parameters.branch }}'
+    - task: Maven@3
+      displayName: Run Findbugs Analysis
+      inputs:
+        mavenPomFile: 'pom.xml' 
+        goals: 'findbugs:findbugs'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        javaHomeOption: 'JDKVersion'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
+        findBugsRunAnalysis: true
+
+  - job: CodeCoverage
+    displayName: ${{ parameters.name }} coverage analysis
+    dependsOn: ${{ parameters.depends }}
+    pool:
+      vmImage: ${{ parameters.pool }}
+    steps:
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: 'git checkout ${{ parameters.branch }}'
+    - task: Maven@3
+      displayName: Run code coverage
+      inputs:
+        mavenPomFile: 'pom.xml'
+        goals: 'cobertura:cobertura'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        codeCoverageToolOption: 'Cobertura'
+        javaHomeOption: 'JDKVersion'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
+

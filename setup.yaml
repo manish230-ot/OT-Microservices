@@ -1,0 +1,16 @@
+steps:
+    - task: DownloadSecureFile@1
+      inputs:
+        secureFile: 'settings.xml'
+    - task: CmdLine@2
+      displayName: Moving settings.xml to user home
+      inputs:
+        script: |
+            mkdir ~/.m2
+            cp $(Agent.TempDirectory)/settings.xml ~/.m2/settings.xml
+            ls -la ~/.m2
+    
+    - task: Bash@3
+      inputs:
+        targetType: 'inline'
+        script: 'git checkout gatewayci'`
